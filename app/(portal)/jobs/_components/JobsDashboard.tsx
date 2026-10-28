@@ -7,35 +7,7 @@ import type { JobStatus, JobSummary, Matter, MatterId } from '@/types/jobs';
 import { PRIORITIES, courtInfo } from '../new/_lib/constants';
 import { formatDay } from '../new/_lib/dates';
 import { Callout, Icon, Spinner } from '../new/_components/ui';
-
-/* ── Status presentation: label + semantic colour token ── */
-type Tone = 'neutral' | 'violet' | 'info' | 'ok' | 'warn' | 'bad';
-const STATUS: Record<JobStatus, { label: string; tone: Tone }> = {
-  draft: { label: 'Draft', tone: 'neutral' },
-  submitted: { label: 'Submitted', tone: 'neutral' },
-  quoted: { label: 'Quoted', tone: 'neutral' },
-  authorized: { label: 'Authorized', tone: 'violet' },
-  open: { label: 'Finding server', tone: 'violet' },
-  offered: { label: 'Offered to servers', tone: 'violet' },
-  assigned: { label: 'Server assigned', tone: 'info' },
-  in_progress: { label: 'In progress', tone: 'info' },
-  served: { label: 'Served', tone: 'ok' },
-  non_served: { label: 'Not served', tone: 'warn' },
-  affidavit_pending: { label: 'Affidavit pending', tone: 'warn' },
-  affidavit_signed: { label: 'Affidavit signed', tone: 'ok' },
-  completed: { label: 'Completed', tone: 'ok' },
-  closed: { label: 'Closed', tone: 'neutral' },
-  cancelled: { label: 'Cancelled', tone: 'neutral' },
-  disputed: { label: 'Disputed', tone: 'bad' },
-};
-const TONE_CLASS: Record<Tone, string> = {
-  neutral: 'bg-neutral-bg text-neutral',
-  violet: 'bg-violet-bg text-violet',
-  info: 'bg-info-bg text-info',
-  ok: 'bg-ok-bg text-ok',
-  warn: 'bg-warn-bg text-warn',
-  bad: 'bg-bad-bg text-bad',
-};
+import { StatusPill } from './status';
 
 const PHASES: { id: string; label: string; statuses?: readonly JobStatus[] }[] = [
   { id: 'all', label: 'All active' },
@@ -45,11 +17,6 @@ const PHASES: { id: string; label: string; statuses?: readonly JobStatus[] }[] =
   { id: 'attention', label: 'Needs attention', statuses: ['non_served', 'disputed'] },
 ];
 const INACTIVE: ReadonlySet<JobStatus> = new Set(['draft', 'quoted', 'completed', 'closed', 'cancelled']);
-
-function StatusPill({ status }: { status: JobStatus }) {
-  const s = STATUS[status];
-  return <span className={`pill ${TONE_CLASS[s.tone]}`}>{s.label}</span>;
-}
 
 function daysLeft(iso: string): number {
   const end = new Date(iso);
@@ -185,7 +152,8 @@ export function JobsDashboard() {
               {rows.map((j) => {
                 const m = matters.get(j.matterId);
                 return (
-                  <li key={j.id} className="flex flex-col gap-2 px-3 py-3">
+                  <li key={j.id}>
+                    <Link href={`/jobs/view/?id=${encodeURIComponent(j.id)}`} className="flex flex-col gap-2 px-3 py-3 active:bg-sunk">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="truncate font-medium">{j.primaryRecipientName ?? 'Recipient not set'}</div>
@@ -204,7 +172,11 @@ export function JobsDashboard() {
                         {formatDay(new Date(j.dueBy))} · <DueLabel iso={j.dueBy} />
                       </span>
                     </div>
-                    <div className="text-[12px] text-faint">{j.assignedServer ? `Server: ${j.assignedServer.displayName}` : 'No server assigned yet'}</div>
+                    <div className="flex items-center justify-between text-[12px] text-faint">
+                      <span>{j.assignedServer ? `Server: ${j.assignedServer.displayName}` : 'No server assigned yet'}</span>
+                      <span className="font-medium text-accent">Track →</span>
+                    </div>
+                    </Link>
                   </li>
                 );
               })}
@@ -228,7 +200,11 @@ export function JobsDashboard() {
                     const court = m ? courtInfo(m.courtType) : null;
                     return (
                       <tr key={j.id} className="border-t border-line align-top hover:bg-sunk">
-                        <td className="px-3 py-2.5 font-mono text-accent">{j.publicRef}</td>
+                        <td className="px-3 py-2.5 font-mono">
+                          <Link href={`/jobs/view/?id=${encodeURIComponent(j.id)}`} className="text-accent hover:underline">
+                            {j.publicRef}
+                          </Link>
+                        </td>
                         <td className="px-3 py-2.5 font-mono">{m?.clientReference ?? '—'}</td>
                         <td className="max-w-[260px] px-3 py-2.5">
                           <div className="truncate font-medium" title={m?.styleOfCause}>

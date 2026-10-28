@@ -323,3 +323,107 @@ body {
     animation: none !important;
   }
 }
+
+/* ── Live map markers (Leaflet divIcons; plain CSS because Leaflet injects the HTML) ── */
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: var(--sn-sunk);
+}
+.leaflet-container .leaflet-control-attribution {
+  font-size: 10px;
+  background: rgb(255 255 255 / 0.75);
+}
+.snm-target {
+  position: relative;
+  width: 28px;
+  height: 28px;
+}
+.snm-target b {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: #1f4f8f;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+}
+.snm-target i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #2f6fc4;
+  opacity: 0;
+}
+.snm-target.is-searching i {
+  animation: snm-radar 2.4s ease-out infinite;
+}
+.snm-target.is-searching i + i {
+  animation-delay: 1.2s;
+}
+@keyframes snm-radar {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(5.5);
+    opacity: 0;
+  }
+}
+.snm-server {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 700 10px/1 var(--font-sans);
+  color: #fff;
+  border: 2.5px solid #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+  transition: background-color 0.3s, opacity 0.3s;
+}
+.snm-server.server-available {
+  background: #1d6b45;
+}
+.snm-server.server-busy {
+  background: #8791a1;
+  opacity: 0.85;
+}
+.snm-server.server-offered {
+  background: #2f6fc4;
+  box-shadow: 0 0 0 4px rgb(47 111 196 / 0.3), 0 1px 4px rgb(0 0 0 / 0.35);
+}
+.snm-server.server-declined {
+  background: #8791a1;
+  opacity: 0.5;
+}
+.snm-server.server-assigned {
+  background: #101a2b;
+  width: 34px;
+  height: 34px;
+  box-shadow: 0 0 0 4px rgb(109 159 224 / 0.45), 0 2px 6px rgb(0 0 0 / 0.4);
+}
+.snm-attempt {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 700 10px/1 var(--font-sans);
+  color: #fff;
+  border: 2px solid #fff;
+  background: #8a5a00;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+}
+.snm-attempt.attempt-served {
+  background: #1d6b45;
+}
+.snm-attempt.attempt-flagged {
+  background: #a1262b;
+}
+@media (prefers-reduced-motion: reduce) {
+  .snm-target.is-searching i {
+    animation: none;
+    opacity: 0.2;
+    transform: scale(2.5);
+  }
+}

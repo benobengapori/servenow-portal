@@ -27,6 +27,7 @@ import type {
   ConfirmSubmitInput,
   UpdateJobInput,
   AddressValidation,
+  Affidavit,
   PaymentOption,
   UploadStage,
   UploadUrlRequest,
@@ -289,6 +290,11 @@ export function createApiClient(config: ApiClientConfig) {
     /** POST /jobs/{id}/submit:confirm — finish submission after 3-D Secure. Uses its own idempotency key. */
     confirmSubmit(jobId: JobId, input: ConfirmSubmitInput, opts?: MutationOptions): Promise<SubmitJobResponse> {
       return post<SubmitJobResponse>(`/jobs/${id(jobId)}/submit:confirm`, input, opts);
+    },
+
+    /** GET /jobs/{id}/affidavit — 404 until the server has drafted it. */
+    getAffidavit(jobId: JobId, opts?: RequestOptions): Promise<Affidavit> {
+      return get<Affidavit>(`/jobs/${id(jobId)}/affidavit`, undefined, opts);
     },
 
     /* ── Billing ── */

@@ -413,6 +413,57 @@ export interface Job extends JobSummary {
   readonly createdAt: IsoDateTime;
 }
 
+/* ───────────────────────── Affidavit of service ─────────────────────────
+ * The server (deponent) swears or affirms the affidavit before a commissioner for taking
+ * affidavits (lawyer, paralegal or notary; in Ontario this can be done by video). Both sign.
+ * An affidavit of attempted service is produced when service fails, so the firm can move for
+ * substituted service.
+ */
+
+export type AffidavitKind = 'service' | 'attempted_service';
+export type AffidavitStatus = 'drafting' | 'awaiting_deponent' | 'awaiting_commissioner' | 'commissioned';
+
+export interface AffidavitSignature {
+  readonly name: string;
+  readonly signedAt: IsoDateTime;
+  /** SVG path data (viewBox 0 0 240 60) of the captured signature. */
+  readonly signaturePath: string;
+}
+
+export interface Commissioner extends AffidavitSignature {
+  readonly title: 'Commissioner for Taking Affidavits' | 'Notary Public';
+  /** e.g. Law Society of Ontario licence number. */
+  readonly licence: string;
+  readonly method: 'in_person' | 'video_conference';
+  /** Where the commissioner was located, e.g. "City of Ottawa". */
+  readonly location: string;
+}
+
+export interface AffidavitParagraph {
+  readonly n: number;
+  readonly text: string;
+}
+
+export interface Affidavit {
+  readonly jobId: JobId;
+  readonly kind: AffidavitKind;
+  readonly status: AffidavitStatus;
+  /** Prescribed form for the court, e.g. "Form 16B". */
+  readonly form: string;
+  readonly courtName: string;
+  readonly courtFileNo: string | null;
+  readonly plaintiff: string;
+  readonly defendant: string;
+  readonly deponentName: string;
+  /** "of the City of Ottawa, in the Province of Ontario" */
+  readonly deponentOf: string;
+  readonly paragraphs: readonly AffidavitParagraph[];
+  readonly deponent: AffidavitSignature | null;
+  readonly commissioner: Commissioner | null;
+  /** SHA-256 of the final PDF once commissioned. */
+  readonly pdfSha256: Sha256Hex | null;
+}
+
 export interface CreateJobInput {
   matterId: MatterId;
   priority: Priority;

@@ -69,6 +69,23 @@ Safari → Share → **Add to Home Screen** (the app shows these steps itself).
 Demo data resets when the app is closed. Static hosting can't send security headers, so the
 server build (`npm run build`) is what real firms use.
 
+## Job tracking, dispatch and affidavits
+
+`/jobs/view/?id=…` (a query parameter so it works as a static export) shows:
+
+- **Live map** (`components/map/LiveMap.tsx`): Leaflet with OpenStreetMap data and CARTO tiles.
+  Fine for the demo; production volume needs a paid tile provider (only the tile URL changes).
+- **Dispatch**: offer rounds to servers at 5 km, then 10 km, then "No server available" with
+  *Widen search* / *Keep waiting*; on acceptance the server drives to the address. In the demo
+  this is simulated in `jobs/view/_lib/useDispatch.ts`; in production the same events come from
+  the API over a WebSocket.
+- **Attempts**: GPS pin per attempt; points beyond 150 m are flagged (the disputed sample job).
+- **Affidavit**: drafted from the job record on the court's form (16B / 8A / 6B), signed by the
+  server, then affirmed before a commissioner for taking affidavits (in person or by video under
+  O. Reg. 431/20), with signature and stamp. Demo mode can simulate both signatures and
+  watermarks the document "DEMO SAMPLE · NOT FOR FILING". The wording is a draft; have Ontario
+  counsel review it before production.
+
 ## Endpoints the wizard needs beyond Blueprint §6.3
 
 The NestJS API must implement these; they are typed in `lib/api/client.ts`.
@@ -80,6 +97,7 @@ The NestJS API must implement these; they are typed in `lib/api/client.ts`.
 | POST | `/addresses:validate` | Geocode pre-check; keeps the Google key server-side |
 | POST | `/jobs/{id}/submit:confirm` | Finish submission after 3-D Secure (the submit key replays `requires_action`) |
 | GET | `/me/payment-options` | Invoice terms and saved cards for the firm |
+| GET | `/jobs/{id}/affidavit` | Affidavit draft / signed state for the job page |
 
 ## Conventions
 

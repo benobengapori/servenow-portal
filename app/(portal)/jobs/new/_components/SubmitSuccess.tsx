@@ -70,7 +70,10 @@ export function SubmitSuccess({ job, outcome, quote, matter, recipientName, addr
         ))}
       </dl>
       <div className="flex flex-wrap gap-2 pt-1">
-        <Link href="/jobs" className="btn btn-primary">
+        <Link href={`/jobs/view/?id=${encodeURIComponent(job.id)}`} className="btn btn-primary">
+          Track this job on the map
+        </Link>
+        <Link href="/jobs/" className="btn btn-ghost">
           View active jobs
         </Link>
         <button type="button" className="btn btn-ghost" onClick={onServeAnother}>

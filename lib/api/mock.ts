@@ -8,6 +8,7 @@
  */
 import type { ApiClient, MutationOptions, UploadDocumentOptions } from './client';
 import { ApiError } from './errors';
+import { buildAffidavit, seedJobs, seedServerFullName, SEED_MATTER_ROWS } from './mock-seed';
 import type {
   AddressValidation,
   FileId,
@@ -53,19 +54,13 @@ const PRICING = {
   hst: 0.13,
 };
 
-const MATTERS: Matter[] = [
-  ['LIT-24-0917', 'CV-26-00081245-0000', 'Harrow Credit Union v. Delacroix', 'superior'],
-  ['COL-26-1142', 'SC-26-00004417', 'Northgate Supply Ltd. v. Pellerin', 'small_claims'],
-  ['LIT-26-0214', 'CV-26-00083377-0000', 'Ostrander v. Mapleview Condo Corp. No. 612', 'superior'],
-  ['FAM-26-0388', 'FC-26-1893', 'Walcott v. Walcott', 'family'],
-  ['LIT-25-0102', 'CV-26-00079902-0000', 'Kestrel Logistics v. Brandt Holdings', 'superior'],
-].map(([ref, file, cause, court], i) => ({
+const MATTERS: Matter[] = SEED_MATTER_ROWS.map(([ref, file, cause, court], i) => ({
   id: `mat_seed${i}` as MatterId,
   clientOrgId: ORG,
   courtFileNo: file ?? null,
   styleOfCause: cause ?? '',
   courtName: 'Ottawa — 161 Elgin St.',
-  courtType: court as Matter['courtType'],
+  courtType: court,
   jurisdictionCode: 'CA-ON',
   clientReference: ref ?? null,
   createdBy: ME,
@@ -77,57 +72,6 @@ const PAYMENT_OPTIONS: PaymentOption[] = [
   { id: 'pm_mock_4242', kind: 'card', label: 'Visa •••• 4242', detail: 'Firm card · exp 08/28' },
   { id: MOCK_3DS_PAYMENT_ID, kind: 'card', label: 'Visa •••• 3184', detail: 'Test card · bank verification (3-D Secure) required' },
 ];
-
-/* ── Seed jobs for the dashboard, with due dates relative to today so the demo always looks current ── */
-interface SeedJob {
-  matter: number; // index into MATTERS
-  recipient: string;
-  status: JobSummary['status'];
-  priority: Priority;
-  method: JobSummary['serviceMethodRequested'];
-  dueInDays: number;
-  attempts: number;
-  max: number;
-  server: string | null;
-}
-const SEED_JOBS: SeedJob[] = [
-  { matter: 0, recipient: 'Martin Delacroix', status: 'in_progress', priority: 'standard', method: 'personal', dueInDays: 4, attempts: 2, max: 3, server: 'Rahel Okafor' },
-  { matter: 0, recipient: 'Delacroix Renovations Inc.', status: 'served', priority: 'standard', method: 'corporate', dueInDays: 4, attempts: 1, max: 3, server: 'Rahel Okafor' },
-  { matter: 1, recipient: 'Amélie Pellerin', status: 'affidavit_pending', priority: 'rush', method: 'substituted_residence', dueInDays: 1, attempts: 3, max: 3, server: 'Denis Tremblay' },
-  { matter: 3, recipient: 'Kevin Walcott', status: 'non_served', priority: 'expedited', method: 'personal', dueInDays: 2, attempts: 4, max: 4, server: 'Sophie Nguyen' },
-  { matter: 4, recipient: 'Brandt Holdings Corp.', status: 'assigned', priority: 'standard', method: 'corporate', dueInDays: 8, attempts: 0, max: 3, server: 'Layla Haddad' },
-  { matter: 2, recipient: 'Mapleview Condo Corp. No. 612', status: 'open', priority: 'standard', method: 'corporate', dueInDays: 9, attempts: 0, max: 3, server: null },
-  { matter: 1, recipient: 'Gábor Szabo', status: 'offered', priority: 'same_day', method: 'personal', dueInDays: 0, attempts: 0, max: 2, server: null },
-  { matter: 1, recipient: 'Petra Achterberg', status: 'disputed', priority: 'standard', method: 'personal', dueInDays: -3, attempts: 1, max: 3, server: 'Marc Jean-Baptiste' },
-  { matter: 2, recipient: 'Fairway Insurance Co.', status: 'authorized', priority: 'expedited', method: 'corporate', dueInDays: 3, attempts: 0, max: 3, server: null },
-  { matter: 3, recipient: 'Tunde Idowu', status: 'affidavit_signed', priority: 'standard', method: 'personal', dueInDays: -2, attempts: 2, max: 3, server: 'Sophie Nguyen' },
-];
-
-function seedSummaries(): JobSummary[] {
-  const today = new Date();
-  return SEED_JOBS.map((j, i) => {
-    const due = new Date(today);
-    due.setDate(due.getDate() + j.dueInDays);
-    due.setHours(17, 0, 0, 0);
-    const parts = j.server?.split(' ') ?? [];
-    return {
-      id: `job_seed${i}` as JobId,
-      publicRef: `SN-2026-00${4189 + i * 7}`,
-      matterId: MATTERS[j.matter]!.id,
-      status: j.status,
-      priority: j.priority,
-      serviceMethodRequested: j.method,
-      dueBy: due.toISOString(),
-      maxAttempts: j.max,
-      attemptCount: j.attempts,
-      primaryRecipientName: j.recipient,
-      assignedServer: j.server
-        ? { id: `usr_srv${i}` as UserId, displayName: `${parts[0]![0]}. ${parts.slice(1).join(' ')}`, ratingAvg: 4.8 }
-        : null,
-      updatedAt: new Date(today.getTime() - i * 3_600_000).toISOString(),
-    };
-  });
-}
 
 /* ── Mock geocoder (stands in for Google Geocoding in the API) ── */
 const PLACES: Record<string, { city: string; lat: number; lng: number; km: number; pool: string; province?: string }> = {
@@ -188,7 +132,8 @@ export function createMockApiClient(): ApiClient {
   const jobs = new Map<JobId, ServerJob>();
   const idem = new Map<string, unknown>();
   let seq = 4280;
-  const seeded = seedSummaries();
+  const seedDetail = new Map(seedJobs(MATTERS, ORG, ME).map((j) => [j.id, j]));
+  const seeded: JobSummary[] = [...seedDetail.values()];
 
   /** Replays the stored response when a POST reuses an Idempotency-Key. */
   async function idempotent<T>(path: string, opts: MutationOptions | undefined, run: () => T): Promise<T> {
@@ -317,7 +262,19 @@ export function createMockApiClient(): ApiClient {
 
     getJob: async (jobId) => {
       await latency();
-      return structuredClone(mustGet(jobId).job);
+      const seed = seedDetail.get(jobId);
+      return structuredClone(seed ?? mustGet(jobId).job);
+    },
+
+    getAffidavit: async (jobId) => {
+      await latency();
+      const job = seedDetail.get(jobId) ?? jobs.get(jobId)?.job;
+      if (!job) throw new ApiError({ type: '/problems/not-found', title: 'Job not found', status: 404 });
+      const matter = MATTERS.find((m) => m.id === job.matterId);
+      const server = seedServerFullName(jobId) ?? 'Assigned server';
+      const affidavit = matter ? buildAffidavit(job, matter, server) : null;
+      if (!affidavit) throw new ApiError({ type: '/problems/not-found', title: 'No affidavit yet', status: 404, detail: 'The affidavit is drafted after the server records service or the final attempt.' });
+      return affidavit;
     },
 
     updateJob: async (jobId, input) => {

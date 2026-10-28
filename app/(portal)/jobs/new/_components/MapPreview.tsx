@@ -1,35 +1,31 @@
 'use client';
 
+import { LiveMap } from '@/components/map/LiveMap';
 import type { AddressValidation } from '@/types/jobs';
 
 type Located = Extract<AddressValidation, { ok: true }>;
 
-/**
- * Schematic map preview: the pin plus the ~1 km area servers see before accepting.
- * Swap for a Google Static Maps image (signed URL from the API) when available.
- */
+/** Real map of the validated address, with the ~1 km area servers see before they accept. */
 export function MapPreview({ result }: { result: Located }) {
-  const W = 320;
-  const H = 150;
+  const key = `${result.location.lat},${result.location.lng}`;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full max-w-full rounded-md border border-line" role="img" aria-label={`Map preview: ${result.formatted}`}>
-      <rect width={W} height={H} fill="var(--sn-map-land)" />
-      <path d="M0 118 C60 104 110 128 170 112 S 270 96 320 108 L320 150 L0 150Z" fill="var(--sn-map-water)" />
-      {[30, 78, 126].map((y) => (
-        <line key={`h${y}`} x1="0" x2={W} y1={y} y2={y + 6} stroke="var(--sn-map-road)" strokeWidth="5" />
-      ))}
-      {[54, 132, 214, 286].map((x) => (
-        <line key={`v${x}`} x1={x} x2={x - 10} y1="0" y2={H} stroke="var(--sn-map-road)" strokeWidth="4" />
-      ))}
-      <circle cx="160" cy="68" r="46" fill="var(--sn-accent)" fillOpacity="0.1" stroke="var(--sn-accent)" strokeDasharray="4 3" strokeOpacity="0.6" />
-      <path d="M160 70 c0 0 -11 -11 -11 -19 a11 11 0 0 1 22 0 c0 8 -11 19 -11 19z" fill="var(--sn-accent)" />
-      <circle cx="160" cy="51" r="4" fill="var(--sn-surface)" />
-      <text x="8" y={H - 8} fontSize="10" fill="var(--sn-muted)" fontFamily="var(--font-mono)">
-        {result.location.lat.toFixed(4)}, {result.location.lng.toFixed(4)}
-      </text>
-      <text x={W - 8} y={H - 8} fontSize="10" fill="var(--sn-muted)" textAnchor="end">
-        dashed = ~1 km shown to servers
-      </text>
-    </svg>
+    <div className="flex flex-col gap-1">
+      <LiveMap
+        className="h-48 w-full"
+        center={result.location}
+        zoom={14}
+        interactive={false}
+        ariaLabel={`Map of ${result.formatted}`}
+        markers={[{ id: 'target', position: result.location, kind: 'target', title: result.formatted }]}
+        circles={[{ id: 'privacy', center: result.location, radiusM: 1000, kind: 'privacy' }]}
+        fit={{ key, points: [result.location], maxZoom: 14 }}
+      />
+      <div className="flex justify-between gap-2 font-mono text-[10.5px] text-faint">
+        <span>
+          {result.location.lat.toFixed(4)}, {result.location.lng.toFixed(4)}
+        </span>
+        <span className="font-sans">Dashed circle: the area servers see before they accept</span>
+      </div>
+    </div>
   );
 }
