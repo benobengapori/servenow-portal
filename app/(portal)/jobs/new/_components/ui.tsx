@@ -18,6 +18,10 @@ export const ICONS = {
   clock: 'M12 7v5l3 2M12 21a9 9 0 100-18 9 9 0 000 18z',
   shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z',
   trash: 'M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13',
+  sparkle: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 15l.7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7z',
+  send: 'M4 12l16-8-6 16-2.5-6.5z',
+  arrow: 'M5 12h14M13 6l6 6-6 6',
+  book: 'M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3zM5 17a3 3 0 013-3h11',
 } as const;
 export type IconName = keyof typeof ICONS;
 

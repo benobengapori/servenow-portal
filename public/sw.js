@@ -3,14 +3,14 @@
  * for pages already visited. Hashed build assets are cache-first; pages are network-first so
  * a new deploy shows up on the next launch.
  */
-const VERSION = 'sn-v1';
+const VERSION = 'sn-v2';
 const scope = new URL(self.registration.scope).pathname; // e.g. "/servenow-portal/"
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(VERSION)
-      .then((c) => c.addAll([`${scope}jobs/`, `${scope}jobs/new/`]))
+      .then((c) => c.addAll([`${scope}home/`, `${scope}jobs/`, `${scope}jobs/new/`]))
       .then(() => self.skipWaiting()),
   );
 });
@@ -53,6 +53,6 @@ self.addEventListener('fetch', (event) => {
         }
         return res;
       })
-      .catch(() => caches.match(req).then((hit) => hit || caches.match(`${scope}jobs/`))),
+      .catch(() => caches.match(req).then((hit) => hit || caches.match(`${scope}home/`))),
   );
 });

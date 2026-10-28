@@ -527,3 +527,53 @@ export interface ListJobsParams {
   cursor?: string;
   limit?: number;
 }
+
+/* ───────────────────────── Ask ServeNow (assistant) ─────────────────────────
+ * POST /assistant/messages. The assistant explains features, general Ontario service rules and
+ * why ServeNow's evidence holds up. It does not give advice on a client's case.
+ */
+
+export interface AssistantSource {
+  readonly label: string; // "Rules of Civil Procedure, r. 16.03(5)"
+  readonly url?: string;
+}
+
+export interface AssistantAction {
+  readonly label: string;
+  readonly href: string; // app route, e.g. "/jobs/new/"
+}
+
+/** What the user is looking at, so answers can be specific ("why is this job flagged?"). */
+export interface AssistantContext {
+  readonly page: 'home' | 'jobs' | 'new-job' | 'job' | 'other';
+  readonly step?: 'matter' | 'documents' | 'recipient' | 'checkout';
+  readonly job?: {
+    readonly publicRef: string;
+    readonly status: JobStatus;
+    readonly attempts: number;
+    readonly maxAttempts: number;
+    readonly gpsFlagged: boolean;
+    readonly affidavitStatus: AffidavitStatus | null;
+    readonly courtType: CourtType | null;
+  };
+}
+
+export interface AssistantTurn {
+  readonly role: 'user' | 'assistant';
+  readonly text: string;
+}
+
+export interface AskAssistantInput {
+  readonly question: string;
+  readonly history: readonly AssistantTurn[];
+  readonly context: AssistantContext;
+}
+
+export interface AssistantReply {
+  /** Plain text. Blank lines separate paragraphs; lines starting "- " are bullets. */
+  readonly text: string;
+  readonly kind: 'answer' | 'out_of_scope' | 'not_sure';
+  readonly sources: readonly AssistantSource[];
+  readonly actions: readonly AssistantAction[];
+  readonly followUps: readonly string[];
+}

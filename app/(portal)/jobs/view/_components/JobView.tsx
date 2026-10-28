@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useAssistant, useAssistantContext } from '@/components/assistant/AssistantProvider';
 import { api, ApiError } from '@/lib/api';
 import { seedServerFullName } from '@/lib/api/mock-seed';
 import type { Affidavit, Job, JobId, Matter } from '@/types/jobs';
@@ -22,6 +23,23 @@ export function JobView() {
   const [matter, setMatter] = useState<Matter | null>(null);
   const [affidavit, setAffidavit] = useState<Affidavit | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { openPanel } = useAssistant();
+  useAssistantContext(
+    job
+      ? {
+          page: 'job',
+          job: {
+            publicRef: job.publicRef,
+            status: job.status,
+            attempts: job.attempts.length,
+            maxAttempts: job.maxAttempts,
+            gpsFlagged: job.attempts.some((a) => a.flags.includes('distance_exceeded')),
+            affidavitStatus: affidavit?.status ?? null,
+            courtType: matter?.courtType ?? null,
+          },
+        }
+      : { page: 'job' },
+  );
 
   useEffect(() => {
     if (!id) {
@@ -81,7 +99,12 @@ export function JobView() {
           <h1 className="mt-0.5 text-[21px] font-semibold">{recipient?.name ?? 'Recipient not set'}</h1>
           <div className="text-[13px] text-muted">{matter?.styleOfCause}</div>
         </div>
-        <StatusPill status={job.status} />
+        <div className="flex flex-col items-end gap-2">
+          <StatusPill status={job.status} />
+          <button type="button" onClick={() => openPanel('Explain this job')} className="inline-flex items-center gap-1 text-[12.5px] font-medium text-accent hover:underline">
+            <Icon name="sparkle" className="h-3.5 w-3.5" /> Explain this job
+          </button>
+        </div>
       </header>
 
       {address ? (

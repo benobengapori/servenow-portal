@@ -28,6 +28,8 @@ import type {
   UpdateJobInput,
   AddressValidation,
   Affidavit,
+  AskAssistantInput,
+  AssistantReply,
   PaymentOption,
   UploadStage,
   UploadUrlRequest,
@@ -295,6 +297,13 @@ export function createApiClient(config: ApiClientConfig) {
     /** GET /jobs/{id}/affidavit — 404 until the server has drafted it. */
     getAffidavit(jobId: JobId, opts?: RequestOptions): Promise<Affidavit> {
       return get<Affidavit>(`/jobs/${id(jobId)}/affidavit`, undefined, opts);
+    },
+
+    /* ── Assistant ── */
+
+    /** POST /assistant/messages — the API calls the AI model; the key never reaches the browser. */
+    askAssistant(input: AskAssistantInput, opts?: MutationOptions): Promise<AssistantReply> {
+      return post<AssistantReply>('/assistant/messages', input, opts);
     },
 
     /* ── Billing ── */

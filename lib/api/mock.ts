@@ -8,6 +8,7 @@
  */
 import type { ApiClient, MutationOptions, UploadDocumentOptions } from './client';
 import { ApiError } from './errors';
+import { answer as assistantAnswer } from '@/lib/assistant/engine';
 import { buildAffidavit, seedJobs, seedServerFullName, SEED_MATTER_ROWS } from './mock-seed';
 import type {
   AddressValidation,
@@ -419,6 +420,13 @@ export function createMockApiClient(): ApiClient {
         }
         return { outcome: 'authorized' as const, job: touch(s, { status: 'authorized' }) };
       }),
+
+    askAssistant: async (input) => {
+      // Pause like a model would, scaled a little with answer length.
+      const reply = assistantAnswer(input);
+      await sleep(500 + Math.min(900, reply.text.length / 2));
+      return reply;
+    },
 
     listPaymentOptions: async () => {
       await latency();

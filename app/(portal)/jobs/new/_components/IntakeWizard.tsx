@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useAssistantContext } from '@/components/assistant/AssistantProvider';
 import { api, ApiError, newIdempotencyKey, sha256Hex, mockThreeDS, type IdempotencyKey } from '@/lib/api';
 import { handleCardAction } from '@/lib/payments/stripe';
 import type {
@@ -129,6 +130,9 @@ export function IntakeWizard() {
   const [submitKey, setSubmitKey] = useState<IdempotencyKey | null>(null);
   const [mockChallenge, setMockChallenge] = useState(false);
   const [done, setDone] = useState<Done | null>(null);
+
+  const STEP_NAMES = ['matter', 'documents', 'recipient', 'checkout'] as const;
+  useAssistantContext({ page: 'new-job', step: STEP_NAMES[step] });
 
   const matterSummary = matterView(matter);
   const selectedPayment = paymentOptions?.find((p) => p.id === checkout.paymentOptionId);

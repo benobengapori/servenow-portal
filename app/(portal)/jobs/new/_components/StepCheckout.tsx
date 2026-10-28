@@ -6,6 +6,7 @@ import { formatDay, sameDayAvailable } from '../_lib/dates';
 import { formatMoney } from '../_lib/format';
 import type { CheckoutDraft } from '../_lib/state';
 import { useCountdown } from '../_lib/useCountdown';
+import { HelpLink } from '@/components/assistant/HelpLink';
 import { Callout, Field, Icon, Section, Spinner } from './ui';
 
 interface Props {
@@ -34,7 +35,7 @@ export function StepCheckout({ checkout: c, onChange, dues, quote, quoting, paym
 
   return (
     <div className="flex flex-col gap-4">
-      <Section title="Priority" aside="Due dates skip weekends and Ontario statutory holidays">
+      <Section title="Priority" aside={<HelpLink question="What do the priority levels mean?" label="Which priority?" />}>
         <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Priority">
           {PRIORITY_ORDER.map((k) => {
             const p = PRIORITIES[k];

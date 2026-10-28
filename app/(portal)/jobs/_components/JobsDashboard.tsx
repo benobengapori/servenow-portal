@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { useAssistantContext } from '@/components/assistant/AssistantProvider';
 import { api } from '@/lib/api';
 import type { JobStatus, JobSummary, Matter, MatterId } from '@/types/jobs';
 import { PRIORITIES, courtInfo } from '../new/_lib/constants';
@@ -49,6 +50,7 @@ function Attempts({ used, max }: { used: number; max: number }) {
 }
 
 export function JobsDashboard() {
+  useAssistantContext({ page: 'jobs' });
   const [jobs, setJobs] = useState<readonly JobSummary[] | null>(null);
   const [matters, setMatters] = useState<ReadonlyMap<MatterId, Matter>>(new Map());
   const [error, setError] = useState<string | null>(null);

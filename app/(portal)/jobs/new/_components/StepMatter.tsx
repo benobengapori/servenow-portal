@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import type { Matter } from '@/types/jobs';
 import { COURTS, COURT_SITES, courtInfo, type CourtSite, type SupportedCourt } from '../_lib/constants';
 import { emptyNewMatter, type FieldErrors, type MatterDraft, type NewMatterDraft } from '../_lib/state';
+import { HelpLink } from '@/components/assistant/HelpLink';
 import { Callout, Field, Icon, Section, Spinner } from './ui';
 
 interface Props {
@@ -213,7 +214,7 @@ function NewMatterForm({
   const set = <K extends keyof NewMatterDraft>(k: K, v: NewMatterDraft[K]) => onChange({ ...fields, [k]: v });
 
   return (
-    <Section title="New matter" aside={locked ? 'Saved. Contact support to change a matter’s details.' : undefined}>
+    <Section title="New matter" aside={locked ? 'Saved. Contact support to change a matter’s details.' : <HelpLink question="What are a matter, court file number and style of cause?" label="What goes here?" />}>
       <fieldset disabled={locked} className="flex flex-col gap-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Court" htmlFor="court">

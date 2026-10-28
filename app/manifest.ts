@@ -11,7 +11,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'ServeNow — Client Portal',
     short_name: 'ServeNow',
     description: 'Court process service for law firms: submit, track and receive affidavits of service.',
-    start_url: `${base}/jobs/`,
+    start_url: `${base}/home/`,
     scope: `${base}/`,
     display: 'standalone',
     orientation: 'any',

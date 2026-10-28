@@ -86,6 +86,21 @@ server build (`npm run build`) is what real firms use.
   watermarks the document "DEMO SAMPLE · NOT FOR FILING". The wording is a draft; have Ontario
   counsel review it before production.
 
+## Ask ServeNow (assistant)
+
+A helper, not the main feature: Home leads with *Submit a job* and *Track jobs*; the assistant
+sits below them, as a floating **Ask** button on every screen, and as "?" links on confusing steps.
+
+It covers three things: how ServeNow works, general Ontario service rules, and why ServeNow's
+evidence holds up (with rule citations). It declines advice on a specific case.
+
+- `lib/assistant/guide.ts`: the vetted guide (answers + sources). Single source of truth.
+- `lib/assistant/engine.ts`: demo engine that answers from the guide (used in mock mode).
+- `components/assistant/*`: provider (page context), panel, floating button, help links.
+- Production: `api.askAssistant` → `POST /assistant/messages` in the API, which calls Claude
+  grounded on the same guide. The model may only cite sources from the guide's list and link to
+  known app routes; anything else is dropped. The API key stays on the server.
+
 ## Endpoints the wizard needs beyond Blueprint §6.3
 
 The NestJS API must implement these; they are typed in `lib/api/client.ts`.
@@ -98,6 +113,7 @@ The NestJS API must implement these; they are typed in `lib/api/client.ts`.
 | POST | `/jobs/{id}/submit:confirm` | Finish submission after 3-D Secure (the submit key replays `requires_action`) |
 | GET | `/me/payment-options` | Invoice terms and saved cards for the firm |
 | GET | `/jobs/{id}/affidavit` | Affidavit draft / signed state for the job page |
+| POST | `/assistant/messages` | Ask ServeNow answers (AI model, server-side key) |
 
 ## Conventions
 

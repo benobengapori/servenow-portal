@@ -3,6 +3,7 @@
 import type { RoleInMatter } from '@/types/jobs';
 import { METHODS_BY_KIND, type IntakeRecipientKind } from '../_lib/constants';
 import type { AddressDraft, FieldErrors, PersonDescriptionDraft, RecipientDraft } from '../_lib/state';
+import { HelpLink } from '@/components/assistant/HelpLink';
 import { AddressCard } from './AddressCard';
 import { Callout, Field, Icon, Section } from './ui';
 
@@ -142,7 +143,7 @@ export function StepRecipient({ recipient: r, onChange, onAddressChange, onAddAd
         ) : null}
       </Section>
 
-      <Section title="Method of service" aside="Ontario Rules of Civil Procedure">
+      <Section title="Method of service" aside={<HelpLink question="Personal service vs. alternative service at a residence" label="Which method?" />}>
         <div className="grid gap-2" role="radiogroup" aria-label="Method of service">
           {METHODS_BY_KIND[r.kind].map((m) => (
             <label key={m.id} htmlFor={`m-${m.id}`} className="choice" data-selected={r.method === m.id}>
