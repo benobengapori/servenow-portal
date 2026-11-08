@@ -34,6 +34,7 @@ jobs:
           STATIC_EXPORT: '1'
           NEXT_PUBLIC_API_MOCK: '1'
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+          NEXT_PUBLIC_RELAY_URL: ${{ vars.RELAY_URL }}
           NEXT_TELEMETRY_DISABLED: '1'
       - run: touch out/.nojekyll
       - uses: actions/upload-pages-artifact@v3
