@@ -12,6 +12,7 @@ import { METHODS_BY_KIND, PRIORITIES, courtInfo } from '../../new/_lib/constants
 import { formatDueTime } from '../../new/_lib/dates';
 import { Callout, Icon, Section, Spinner } from '../../new/_components/ui';
 import { AffidavitView } from './AffidavitView';
+import { RelayAcceptance } from './RelayAcceptance';
 import { OUTCOME_LABEL, TrackingMap } from './TrackingMap';
 
 const fmt = (iso: string) => new Date(iso).toLocaleString('en-CA', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
@@ -106,6 +107,8 @@ export function JobView() {
           </button>
         </div>
       </header>
+
+      <RelayAcceptance jobId={job.id} />
 
       {address ? (
         <TrackingMap
