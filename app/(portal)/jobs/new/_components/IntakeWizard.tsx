@@ -41,6 +41,7 @@ import { StepMatter } from './StepMatter';
 import { StepRecipient } from './StepRecipient';
 import { Stepper } from './Stepper';
 import { SubmitSuccess } from './SubmitSuccess';
+import { publishToRelay } from '@/lib/relay/publish';
 import { Spinner } from './ui';
 
 const MOCK_MODE = process.env.NEXT_PUBLIC_API_MOCK === '1';
@@ -391,6 +392,7 @@ export function IntakeWizard() {
   function finish(res: Exclude<SubmitJobResponse, { outcome: 'requires_action' }>) {
     setJob(res.job);
     setDone({ outcome: res.outcome, job: res.job });
+    publishToRelay(res.job);
     setSubmitKey(null);
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
