@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { LiveMap, type MapCircle, type MapLine, type MapMarker } from '@/components/map/LiveMap';
 import type { Attempt, GeoPoint, JobStatus } from '@/types/jobs';
 import { Icon, ProgressBar, Spinner } from '../../new/_components/ui';
@@ -45,6 +45,7 @@ export function TrackingMap(props: Props) {
 /* ── Live: dispatching or en route ── */
 function LiveDispatch({ jobId, target, address, attempts, assignedServerName, mode }: Props & { mode: DispatchMode }) {
   const { servers, phase, route, widen, keepWaiting } = useDispatch(target, jobId, mode, assignedServerName);
+  const [sheetOpen, setSheetOpen] = useState(true);
 
   const markers = useMemo<MapMarker[]>(() => {
     const searching = phase.kind === 'searching' || (phase.kind === 'none_available' && phase.waiting);
@@ -85,19 +86,58 @@ function LiveDispatch({ jobId, target, address, attempts, assignedServerName, mo
   }, [fitKey]);
 
   return (
-    <div className="card overflow-hidden">
-      <LiveMap
-        className="h-[min(56vh,420px)] w-full rounded-none border-0 border-b"
-        center={target}
-        zoom={13}
-        markers={markers}
-        circles={circles}
-        lines={lines}
-        fit={{ key: fitKey, points: fitPoints, maxZoom: phase.kind === 'arrived' ? 17 : 15 }}
-        ariaLabel={`Live map for the service address ${address}`}
-      />
-      <DispatchPanel phase={phase} servers={servers} attemptsSoFar={attempts.length} onWiden={widen} onWait={keepWaiting} />
-      <Legend />
+    <div className="relative h-[calc(100dvh-8rem)] min-h-[560px] overflow-hidden rounded-2xl border border-line md:h-[680px]">
+      {/* The map fills the area. `isolate` keeps Leaflet's layers under the sheet. */}
+      <div className="absolute inset-0 isolate">
+        <LiveMap
+          className="h-full w-full rounded-none border-0"
+          center={target}
+          zoom={13}
+          markers={markers}
+          circles={circles}
+          lines={lines}
+          fit={{ key: fitKey, points: fitPoints, maxZoom: phase.kind === 'arrived' ? 17 : 15 }}
+          ariaLabel={`Live map for the service address ${address}`}
+        />
+      </div>
+
+      <StatusPill phase={phase} />
+
+      <div className="absolute inset-x-0 bottom-0 z-10 rounded-t-3xl bg-surface shadow-[0_-8px_30px_rgba(0,0,0,0.18)]">
+        <button
+          type="button"
+          onClick={() => setSheetOpen((o) => !o)}
+          className="flex w-full justify-center py-2.5"
+          aria-expanded={sheetOpen}
+          aria-label={sheetOpen ? 'Collapse details' : 'Expand details'}
+        >
+          <span className="h-1.5 w-10 rounded-full bg-line-strong" />
+        </button>
+        {sheetOpen ? (
+          <div className="max-h-[52%] overflow-y-auto pb-3">
+            <DispatchPanel phase={phase} servers={servers} attemptsSoFar={attempts.length} onWiden={widen} onWait={keepWaiting} />
+            <Legend />
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/** Floating headline over the map, like the "Finding a driver" / "Arriving in 5 min" banner. */
+function StatusPill({ phase }: { phase: ReturnType<typeof useDispatch>['phase'] }) {
+  const text =
+    phase.kind === 'searching'
+      ? 'Finding a process server'
+      : phase.kind === 'none_available'
+        ? 'No server available yet'
+        : phase.kind === 'en_route'
+          ? `On the way · about ${phase.etaMin} min`
+          : 'At the address';
+  const tone = phase.kind === 'none_available' ? 'bg-warn text-white' : phase.kind === 'en_route' || phase.kind === 'arrived' ? 'bg-ok text-white' : 'bg-[#101a2b] text-white';
+  return (
+    <div className="pointer-events-none absolute inset-x-0 top-3 z-10 flex justify-center px-4" role="status" aria-live="polite">
+      <div className={`rounded-full px-4 py-2 text-[14px] font-semibold shadow-lg ${tone}`}>{text}</div>
     </div>
   );
 }
